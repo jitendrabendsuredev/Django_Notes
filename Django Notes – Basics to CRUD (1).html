@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Django Notes – Basics to CRUD</title>
+<style>
+:root{--bg:#fafaf7;--card:#fff;--tx:#1f2328;--mut:#5f6670;--bd:#dcdcd4;--ac:#0c6b4b;--code:#f1f1ec;--hl:#fff6dc;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181c;--card:#1f2227;--tx:#e8e8e3;--mut:#9aa0a8;--bd:#3a3e45;--ac:#4cc79a;--code:#101215;--hl:#2c2a1d}}
+:root[data-theme="dark"]{--bg:#16181c;--card:#1f2227;--tx:#e8e8e3;--mut:#9aa0a8;--bd:#3a3e45;--ac:#4cc79a;--code:#101215;--hl:#2c2a1d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:840px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.8rem;margin:.2em 0}
+h2{font-size:1.3rem;margin:.1em 0 .4em}
+h3{font-size:1.02rem;margin:1.2em 0 .4em}
+.sub{color:var(--mut);margin:0 0 16px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px;margin:16px 0;scroll-margin-top:12px}
+.chn{display:inline-block;background:var(--ac);color:#fff;font-size:.75rem;border-radius:99px;padding:1px 12px;font-weight:600}
+.goal{color:var(--mut);margin:.2em 0 1em}
+.keys{border-left:4px solid var(--ac);background:var(--hl);padding:8px 14px;border-radius:6px;margin:16px 0 10px}
+.keys ul{margin:6px 0 0;padding-left:20px}
+.cb{position:relative;margin:10px 0}
+pre{background:var(--code);padding:28px 14px 12px;border-radius:8px;overflow-x:auto;font-size:.86rem;line-height:1.5;margin:0;border:1px solid var(--bd)}
+.lang{position:absolute;left:12px;top:6px;font-size:.72rem;color:var(--mut);letter-spacing:.04em}
+.cp{position:absolute;right:8px;top:4px;font:inherit;font-size:.75rem;padding:1px 10px;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:.9em}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+td,th{border:1px solid var(--bd);padding:6px 10px;text-align:left;vertical-align:top}
+th{background:var(--code)}
+.note{border-left:4px solid #ef9f27;background:var(--hl);padding:8px 14px;border-radius:6px;margin:12px 0}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
+.flow span{border:1px solid var(--ac);border-radius:8px;padding:4px 12px}
+.flow i{font-style:normal;color:var(--mut)}
+details{border:1px solid var(--bd);border-radius:8px;padding:8px 12px}
+summary{cursor:pointer;font-weight:600}
+.ans{color:var(--ac)}
+.toc a{color:var(--tx);text-decoration:none}
+.toc li{margin:2px 0}
+.part{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:20px 0 -6px}
+@media print{section{break-inside:avoid-page;border:none}.cp{display:none}nav{display:none}}
+</style></head><body><main>
+<h1>Django Notes: From Basics to CRUD</h1>
+<p class="sub">Read the chapters in order. Each chapter builds on the previous one, using one example project: <b>Student Management</b>.</p>
+<section><h2>Learning Path</h2>
+<ol class="toc">
+<li class="part" style="list-style:none">Part A: Django basics</li>
+<li><a href="#c1">What is Django?</a></li>
+<li><a href="#c2">Setup: project and app</a></li>
+<li><a href="#c3">URL and View: first page</a></li>
+<li class="part" style="list-style:none">Part B: Templates</li>
+<li><a href="#c4">Templates and variables</a></li>
+<li><a href="#c5">Static files (CSS, images)</a></li>
+<li><a href="#c6">Template tags: if, for, filters</a></li>
+<li class="part" style="list-style:none">Part C: Database</li>
+<li><a href="#c7">Models, migrations, admin</a></li>
+<li><a href="#c8">Model field types (data types)</a></li>
+<li><a href="#c9">Show database data in HTML (Read)</a></li>
+<li class="part" style="list-style:none">Part D: CRUD</li>
+<li><a href="#c10">CRUD overview and URLs</a></li>
+<li><a href="#c11">Create: add a record</a></li>
+<li><a href="#c12">Update: edit a record</a></li>
+<li><a href="#c13">Delete: remove a record</a></li>
+<li class="part" style="list-style:none">Part E: Revision</li>
+<li><a href="#c14">Cheat sheet, common errors, practice</a></li>
+</ol></section>
+<section id="c1"><div class="chn">Chapter 1</div><h2>What is Django?</h2><p class="goal"><b>You will learn:</b> what Django is and how a web page request travels through it.</p>
+<p><b>Django</b> is a free, open-source <b>Python web framework</b>. A framework provides ready-made parts (URL routing, database access, admin panel, security) so you do not build everything from scratch.</p>
+<h3>MVT pattern</h3>
+<div class="tbl"><table><tr><th>Part</th><th>Meaning</th><th>File</th></tr>
+<tr><td><b>M</b>odel</td><td>Data (database table)</td><td>models.py</td></tr>
+<tr><td><b>V</b>iew</td><td>Python logic: takes a request, returns a response</td><td>views.py</td></tr>
+<tr><td><b>T</b>emplate</td><td>HTML page shown to the user</td><td>templates/</td></tr></table></div>
+<h3>Request flow</h3>
+<div class="flow"><span>Browser</span><i>&rarr;</i><span>urls.py</span><i>&rarr;</i><span>View</span><i>&rarr;</i><span>Model</span><i>&rarr;</i><span>View</span><i>&rarr;</i><span>Template</span><i>&rarr;</i><span>Browser</span></div>
+<p>Example: user opens <code>/</code>. <code>urls.py</code> finds the view. The view reads students from the database (Model) and passes them to the Template. The Template becomes HTML and the browser shows it.</p><div class="keys"><b>Key points</b><ul><li>Django = Python web framework.</li><li>MVT = Model, View, Template.</li><li>Every page follows: URL &rarr; View &rarr; Template.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> What does MVT stand for?<br><span class="ans">Answer: Model, View, Template.</span></p><p><b>Q2.</b> Which part contains the Python logic?<br><span class="ans">Answer: The View (views.py).</span></p></details></section><section id="c2"><div class="chn">Chapter 2</div><h2>Setup: Project and App</h2><p class="goal"><b>You will learn:</b> how to create a Django project and an app and run the server.</p>
+<div class="cb"><span class="lang">terminal</span><button class="cp">Copy</button><pre>pip install django
+django-admin startproject mysite
+cd mysite
+python manage.py startapp students
+python manage.py runserver</pre></div>
+<p>Open <code>http://127.0.0.1:8000/</code>. The Django welcome page means setup is correct.</p>
+<div class="tbl"><table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>Project</td><td>The whole website (settings, main urls). Here: <code>mysite</code></td></tr>
+<tr><td>App</td><td>One feature of the project. Here: <code>students</code>. A project can have many apps.</td></tr>
+<tr><td>manage.py</td><td>Command tool to run the server, migrations, etc.</td></tr></table></div>
+<h3>Register the app</h3>
+<p>Add the app name in <code>INSTALLED_APPS</code>, otherwise Django cannot find your models and templates.</p><div class="cb"><span class="lang">mysite/settings.py</span><button class="cp">Copy</button><pre>INSTALLED_APPS = [
+    &#x27;django.contrib.admin&#x27;,
+    &#x27;django.contrib.auth&#x27;,
+    &#x27;django.contrib.contenttypes&#x27;,
+    &#x27;django.contrib.sessions&#x27;,
+    &#x27;django.contrib.messages&#x27;,
+    &#x27;django.contrib.staticfiles&#x27;,
+    &#x27;students&#x27;,        # our app
+]</pre></div>
+<h3>Folder structure we will build</h3><div class="cb"><span class="lang">structure</span><button class="cp">Copy</button><pre>mysite/
+  manage.py
+  mysite/              (project folder)
+    settings.py
+    urls.py
+  students/            (app folder)
+    models.py
+    views.py
+    urls.py            (create this file yourself)
+    templates/
+      students/
+        list.html
+        form.html
+        confirm_delete.html
+    static/
+      css/style.css</pre></div><div class="keys"><b>Key points</b><ul><li>Project = whole site, App = one part of it.</li><li>Always add a new app to INSTALLED_APPS.</li><li>Create <code>students/urls.py</code> yourself (Django does not create it).</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Which command creates an app?<br><span class="ans">Answer: python manage.py startapp students</span></p><p><b>Q2.</b> Where do you register the app?<br><span class="ans">Answer: INSTALLED_APPS in settings.py</span></p></details></section><section id="c3"><div class="chn">Chapter 3</div><h2>URL and View: Your First Page</h2><p class="goal"><b>You will learn:</b> how a URL is connected to a view function.</p>
+<p><b>View</b> = a Python function that receives <code>request</code> and returns a response.</p><div class="cb"><span class="lang">students/views.py</span><button class="cp">Copy</button><pre>from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse(&quot;Hello, Django!&quot;)</pre></div>
+<p><b>URL</b> = connects an address to a view. First create <code>students/urls.py</code>:</p><div class="cb"><span class="lang">students/urls.py</span><button class="cp">Copy</button><pre>from django.urls import path
+from . import views
+
+urlpatterns = [
+    path(&#x27;&#x27;, views.home, name=&#x27;home&#x27;),
+]</pre></div><p>Then include it in the project's <code>urls.py</code>:</p><div class="cb"><span class="lang">mysite/urls.py</span><button class="cp">Copy</button><pre>from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path(&#x27;admin/&#x27;, admin.site.urls),
+    path(&#x27;&#x27;, include(&#x27;students.urls&#x27;)),
+]</pre></div>
+<div class="note"><code>name='home'</code> is a nickname for the URL. Later we use it in templates as <code>{% url 'home' %}</code> instead of typing the address.</div><div class="keys"><b>Key points</b><ul><li>View = function(request) that returns a response.</li><li>path(address, view, name) connects URL and view.</li><li>include() connects app urls to the project urls.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> What does path("", views.home) mean?<br><span class="ans">Answer: When the address is empty (home page), run the home view.</span></p><p><b>Q2.</b> Why give a URL a name?<br><span class="ans">Answer: To use it later with {% url %} so links never break.</span></p></details></section><section id="c4"><div class="chn">Chapter 4</div><h2>Templates and Variables</h2><p class="goal"><b>You will learn:</b> how to return an HTML page and show Python data in it.</p>
+<p>A <b>template</b> is an HTML file that can contain Django code. The <b>template engine</b> fills in the values and sends plain HTML to the browser.</p>
+<h3>Step 1: Send data from the view</h3><div class="cb"><span class="lang">students/views.py</span><button class="cp">Copy</button><pre>from django.shortcuts import render
+
+def home(request):
+    context = {&#x27;name&#x27;: &#x27;Riya&#x27;, &#x27;marks&#x27;: 82}
+    return render(request, &#x27;students/home.html&#x27;, context)</pre></div>
+<p><code>render(request, template_name, context)</code> loads the HTML file and fills it with the values of the <b>context dictionary</b>.</p>
+<h3>Step 2: Use the data in the template</h3>
+<p>Save at <code>students/templates/students/home.html</code>:</p><div class="cb"><span class="lang">html</span><button class="cp">Copy</button><pre>&lt;h1&gt;Hello {{ name }}&lt;/h1&gt;
+&lt;p&gt;Your marks: {{ marks }}&lt;/p&gt;</pre></div>
+<div class="tbl"><table><tr><th>Syntax</th><th>Name</th><th>Use</th><th>Example</th></tr>
+<tr><td><code>{{ }}</code></td><td>Variable</td><td>Print a value</td><td><code>{{ student.name }}</code></td></tr>
+<tr><td><code>{% %}</code></td><td>Tag</td><td>Logic (if, for, url, csrf)</td><td><code>{% if marks &gt; 35 %}</code></td></tr>
+<tr><td><code>{# #}</code></td><td>Comment</td><td>Not shown in browser</td><td><code>{# note #}</code></td></tr></table></div><div class="keys"><b>Key points</b><ul><li>Templates live in <code>app/templates/app/</code>.</li><li>The context dictionary key becomes the variable name.</li><li>Dot notation reads a field: <code>{{ student.name }}</code>.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> How do you print a variable?<br><span class="ans">Answer: {{ variable }}</span></p><p><b>Q2.</b> What is the context?<br><span class="ans">Answer: A dictionary of data sent from the view to the template.</span></p></details></section><section id="c5"><div class="chn">Chapter 5</div><h2>Static Files (CSS, Images)</h2><p class="goal"><b>You will learn:</b> how to add CSS and images to a template.</p>
+<p>Files that do not change (CSS, images, JavaScript) are <b>static files</b>. Keep them inside <code>students/static/</code>.</p><div class="cb"><span class="lang">html</span><button class="cp">Copy</button><pre>{% load static %}
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;{% static &#x27;css/style.css&#x27; %}&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;img src=&quot;{% static &#x27;images/logo.png&#x27; %}&quot; width=&quot;100&quot;&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre></div>
+<ul><li><code>{% load static %}</code> is written once at the top of the template.</li>
+<li><code>{% static 'css/style.css' %}</code> gives the correct URL of <code>students/static/css/style.css</code>.</li></ul><div class="keys"><b>Key points</b><ul><li>Put CSS/images in the app's <code>static/</code> folder.</li><li>Always write <code>{% load static %}</code> first.</li><li>Use <code>{% static 'path' %}</code> instead of a normal path.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Which tag must come before using {% static %}?<br><span class="ans">Answer: {% load static %}</span></p><p><b>Q2.</b> Where do CSS files go?<br><span class="ans">Answer: students/static/css/</span></p></details></section><section id="c6"><div class="chn">Chapter 6</div><h2>Template Tags: if, for, Filters</h2><p class="goal"><b>You will learn:</b> how to show content conditionally and repeat HTML for a list.</p>
+<h3>if / elif / else</h3>
+<p>Every <code>{% if %}</code> must end with <code>{% endif %}</code>.</p><div class="cb"><span class="lang">html</span><button class="cp">Copy</button><pre>{% if marks &gt;= 75 %}
+    &lt;p&gt;Distinction&lt;/p&gt;
+{% elif marks &gt;= 35 %}
+    &lt;p&gt;Pass&lt;/p&gt;
+{% else %}
+    &lt;p&gt;Fail&lt;/p&gt;
+{% endif %}</pre></div>
+<h3>for loop</h3>
+<p>Repeats HTML for every item of a list. Must end with <code>{% endfor %}</code>.</p><div class="cb"><span class="lang">html</span><button class="cp">Copy</button><pre>&lt;ul&gt;
+  {% for s in students %}
+      &lt;li&gt;{{ s.name }} - {{ s.course }}&lt;/li&gt;
+  {% endfor %}
+&lt;/ul&gt;</pre></div>
+<p><code>s</code> is one student in each round. <code>s.name</code> reads that student's field.</p>
+<h3>Filters</h3>
+<div class="tbl"><table><tr><th>Filter</th><th>Example</th><th>Result</th></tr>
+<tr><td>upper</td><td><code>{{ name|upper }}</code></td><td>RIYA</td></tr>
+<tr><td>title</td><td><code>{{ name|title }}</code></td><td>Riya Patil</td></tr>
+<tr><td>default</td><td><code>{{ phone|default:"Not given" }}</code></td><td>Not given (if empty)</td></tr>
+<tr><td>length</td><td><code>{{ students|length }}</code></td><td>Number of items</td></tr></table></div><div class="keys"><b>Key points</b><ul><li><code>{% if %}</code> needs <code>{% endif %}</code>; <code>{% for %}</code> needs <code>{% endfor %}</code>.</li><li>The loop variable (<code>s</code>) holds one item per round.</li><li>Filters change how a value looks: <code>{{ value|filter }}</code>.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Which tag closes a for loop?<br><span class="ans">Answer: {% endfor %}</span></p><p><b>Q2.</b> Write code to print a name in capital letters.<br><span class="ans">Answer: {{ name|upper }}</span></p></details></section><section id="c7"><div class="chn">Chapter 7</div><h2>Models, Migrations and Admin</h2><p class="goal"><b>You will learn:</b> how to create database tables using Python classes.</p>
+<p>A <b>model</b> is a Python class that becomes a database table. Each attribute becomes a column. The <b>ORM</b> lets you use the database with Python code instead of SQL.</p><div class="cb"><span class="lang">students/models.py</span><button class="cp">Copy</button><pre>from django.db import models
+
+class Student(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.IntegerField()
+    email = models.EmailField()
+    course = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name</pre></div>
+<div class="tbl"><table><tr><th>Field</th><th>Stores</th></tr>
+<tr><td>CharField(max_length=n)</td><td>Short text</td></tr>
+<tr><td>IntegerField()</td><td>Whole number</td></tr>
+<tr><td>EmailField()</td><td>Email (format checked)</td></tr></table></div>
+<p>Only a few fields are shown here. The <b>full list of data types</b> is in the next chapter.</p>
+<p><code>__str__</code> decides how an object is shown (for example in admin). Django adds an <code>id</code> column automatically.</p>
+<h3>Migrations: create the table</h3><div class="cb"><span class="lang">terminal</span><button class="cp">Copy</button><pre>python manage.py makemigrations
+python manage.py migrate</pre></div>
+<p><code>makemigrations</code> prepares the change. <code>migrate</code> applies it to the database. Run both <b>every time you create or change a model</b>.</p>
+<h3>Admin panel (add data quickly)</h3><div class="cb"><span class="lang">students/admin.py</span><button class="cp">Copy</button><pre>from django.contrib import admin
+from .models import Student
+
+admin.site.register(Student)</pre></div><div class="cb"><span class="lang">terminal</span><button class="cp">Copy</button><pre>python manage.py createsuperuser
+python manage.py runserver
+# open http://127.0.0.1:8000/admin/ and add 2-3 students</pre></div><div class="keys"><b>Key points</b><ul><li>Model class = table, attribute = column.</li><li>After every model change: makemigrations, then migrate.</li><li>Register the model in admin.py to manage data in /admin/.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Which two commands create the table?<br><span class="ans">Answer: makemigrations and migrate</span></p><p><b>Q2.</b> What does __str__ do?<br><span class="ans">Answer: Decides how the object is displayed as text.</span></p></details></section><section id="c8"><div class="chn">Chapter 8</div><h2>Model Field Types (Data Types)</h2><p class="goal"><b>You will learn:</b> every common Django field type, its options, and how to choose the right one.</p><p>Every model field has a <b>data type</b> that decides what kind of value the column can store. Django field types map to Python types and to database column types.</p>
+<h3>1. Text types</h3>
+<div class="tbl"><table><tr><th>Field</th><th>Stores</th><th>Python type</th><th>Example</th></tr>
+<tr><td><code>CharField(max_length=n)</code></td><td>Short text (limit required)</td><td>str</td><td>name, city, course</td></tr>
+<tr><td><code>TextField()</code></td><td>Long text, no limit</td><td>str</td><td>address, description</td></tr>
+<tr><td><code>EmailField()</code></td><td>Email address (format checked)</td><td>str</td><td>riya@gmail.com</td></tr>
+<tr><td><code>URLField()</code></td><td>Website link</td><td>str</td><td>https://example.com</td></tr>
+<tr><td><code>SlugField()</code></td><td>Short URL label (letters, numbers, hyphens)</td><td>str</td><td>python-basics</td></tr></table></div>
+<h3>2. Number types</h3>
+<div class="tbl"><table><tr><th>Field</th><th>Stores</th><th>Python type</th><th>Example</th></tr>
+<tr><td><code>IntegerField()</code></td><td>Whole number</td><td>int</td><td>age = 20</td></tr>
+<tr><td><code>PositiveIntegerField()</code></td><td>Whole number, 0 or more</td><td>int</td><td>quantity = 5</td></tr>
+<tr><td><code>SmallIntegerField()</code></td><td>Small whole number</td><td>int</td><td>rating = 4</td></tr>
+<tr><td><code>BigIntegerField()</code></td><td>Very large whole number</td><td>int</td><td>phone = 9876543210</td></tr>
+<tr><td><code>FloatField()</code></td><td>Decimal number (approximate)</td><td>float</td><td>percentage = 82.5</td></tr>
+<tr><td><code>DecimalField(max_digits, decimal_places)</code></td><td>Exact decimal (use for money)</td><td>Decimal</td><td>price = 499.50</td></tr></table></div>
+<h3>3. True/False, Date and Time types</h3>
+<div class="tbl"><table><tr><th>Field</th><th>Stores</th><th>Python type</th></tr>
+<tr><td><code>BooleanField()</code></td><td>True or False</td><td>bool</td></tr>
+<tr><td><code>DateField()</code></td><td>Date (2026-10-12)</td><td>datetime.date</td></tr>
+<tr><td><code>TimeField()</code></td><td>Time (10:30:00)</td><td>datetime.time</td></tr>
+<tr><td><code>DateTimeField()</code></td><td>Date and time together</td><td>datetime.datetime</td></tr></table></div>
+<h3>4. File, ID and special types</h3>
+<div class="tbl"><table><tr><th>Field</th><th>Stores</th></tr>
+<tr><td><code>FileField(upload_to='docs/')</code></td><td>Uploaded file (path is saved in the database)</td></tr>
+<tr><td><code>ImageField(upload_to='photos/')</code></td><td>Uploaded image (needs the Pillow library: <code>pip install pillow</code>)</td></tr>
+<tr><td><code>UUIDField()</code></td><td>Unique random ID</td></tr>
+<tr><td><code>JSONField()</code></td><td>JSON data (dictionary / list)</td></tr>
+<tr><td><code>AutoField / BigAutoField</code></td><td>Automatic <code>id</code> number (Django adds it for you)</td></tr></table></div>
+<h3>5. Relationship types (link two tables)</h3>
+<div class="tbl"><table><tr><th>Field</th><th>Meaning</th><th>Example</th></tr>
+<tr><td><code>ForeignKey</code></td><td>Many-to-one</td><td>Many students belong to one course</td></tr>
+<tr><td><code>OneToOneField</code></td><td>One-to-one</td><td>One student has one profile</td></tr>
+<tr><td><code>ManyToManyField</code></td><td>Many-to-many</td><td>Students can join many clubs, clubs have many students</td></tr></table></div><div class="cb"><span class="lang">models.py</span><button class="cp">Copy</button><pre>class Course(models.Model):
+    title = models.CharField(max_length=50)
+
+class Student(models.Model):
+    name = models.CharField(max_length=100)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)</pre></div>
+<p><code>on_delete=models.CASCADE</code> means: if the course is deleted, its students are deleted too.</p>
+<h3>Field options (extra settings)</h3>
+<div class="tbl"><table><tr><th>Option</th><th>Meaning</th><th>Example</th></tr>
+<tr><td><code>max_length</code></td><td>Maximum characters (CharField)</td><td><code>max_length=100</code></td></tr>
+<tr><td><code>default</code></td><td>Value used when none is given</td><td><code>default=0</code></td></tr>
+<tr><td><code>null=True</code></td><td>Database column may store NULL (empty)</td><td><code>phone = models.BigIntegerField(null=True)</code></td></tr>
+<tr><td><code>blank=True</code></td><td>Form/admin may leave the field empty</td><td><code>blank=True</code></td></tr>
+<tr><td><code>unique=True</code></td><td>No two rows can have the same value</td><td><code>email = models.EmailField(unique=True)</code></td></tr>
+<tr><td><code>choices</code></td><td>Fixed list of allowed values</td><td>see example below</td></tr>
+<tr><td><code>auto_now_add=True</code></td><td>Set date/time once, when the record is created</td><td><code>created = models.DateTimeField(auto_now_add=True)</code></td></tr>
+<tr><td><code>auto_now=True</code></td><td>Update date/time every time the record is saved</td><td><code>updated = models.DateTimeField(auto_now=True)</code></td></tr>
+<tr><td><code>primary_key=True</code></td><td>Use this field as the main key instead of id</td><td><code>roll_no = models.IntegerField(primary_key=True)</code></td></tr>
+<tr><td><code>verbose_name / help_text</code></td><td>Readable label / hint in admin and forms</td><td><code>help_text="Enter full name"</code></td></tr></table></div>
+<div class="note"><b>null vs blank:</b> <code>null</code> is about the <b>database</b> (can the column be empty?). <code>blank</code> is about <b>validation</b> (can the form be submitted empty?). For text fields use <code>blank=True</code> only (an empty string is stored). For numbers, dates and foreign keys use <code>null=True, blank=True</code> together.</div>
+<h3>One model with many data types</h3><div class="cb"><span class="lang">students/models.py</span><button class="cp">Copy</button><pre>from django.db import models
+
+class Student(models.Model):
+    GENDER_CHOICES = [
+        (&#x27;M&#x27;, &#x27;Male&#x27;),
+        (&#x27;F&#x27;, &#x27;Female&#x27;),
+    ]
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    age = models.IntegerField()
+    percentage = models.FloatField(default=0)
+    fees = models.DecimalField(max_digits=8, decimal_places=2)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    is_active = models.BooleanField(default=True)
+    birth_date = models.DateField(null=True, blank=True)
+    address = models.TextField(blank=True)
+    photo = models.ImageField(upload_to=&#x27;photos/&#x27;, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name</pre></div>
+<h3>Using these types in a template</h3><div class="cb"><span class="lang">html</span><button class="cp">Copy</button><pre>&lt;p&gt;Fees: {{ s.fees }}&lt;/p&gt;
+&lt;p&gt;Born on: {{ s.birth_date|date:&quot;d M Y&quot; }}&lt;/p&gt;
+&lt;p&gt;Gender: {{ s.get_gender_display }}&lt;/p&gt;
+
+{% if s.is_active %}
+    &lt;p&gt;Status: Active&lt;/p&gt;
+{% else %}
+    &lt;p&gt;Status: Inactive&lt;/p&gt;
+{% endif %}</pre></div>
+<ul><li><code>date:"d M Y"</code> filter shows a date as <i>12 Oct 2026</i>.</li>
+<li><code>get_gender_display</code> shows the readable label (<i>Male</i>) of a field that has <code>choices</code>.</li>
+<li>A <code>BooleanField</code> is used directly in <code>{% if %}</code>.</li></ul>
+<h3>Form input for each type (HTML)</h3>
+<div class="tbl"><table><tr><th>Model field</th><th>HTML input</th></tr>
+<tr><td>CharField</td><td><code>&lt;input type="text"&gt;</code></td></tr>
+<tr><td>TextField</td><td><code>&lt;textarea&gt;&lt;/textarea&gt;</code></td></tr>
+<tr><td>IntegerField / FloatField / DecimalField</td><td><code>&lt;input type="number"&gt;</code></td></tr>
+<tr><td>EmailField</td><td><code>&lt;input type="email"&gt;</code></td></tr>
+<tr><td>BooleanField</td><td><code>&lt;input type="checkbox"&gt;</code></td></tr>
+<tr><td>DateField</td><td><code>&lt;input type="date"&gt;</code></td></tr>
+<tr><td>choices</td><td><code>&lt;select&gt;&lt;option&gt;...&lt;/option&gt;&lt;/select&gt;</code></td></tr>
+<tr><td>ImageField / FileField</td><td><code>&lt;input type="file"&gt;</code> (form needs <code>enctype="multipart/form-data"</code>)</td></tr></table></div>
+<div class="note"><b>Changing a model later:</b> if you add a new field to a table that already has data, Django asks for a default value (or the field must have <code>null=True</code> / <code>default=...</code>). Then run <code>makemigrations</code> and <code>migrate</code> again.</div><div class="keys"><b>Key points</b><ul><li>Choose the field type by the kind of data: text, number, true/false, date, file, link to another table.</li><li><code>CharField</code> needs <code>max_length</code>; <code>DecimalField</code> needs <code>max_digits</code> and <code>decimal_places</code>.</li><li><code>null=True</code> is for the database, <code>blank=True</code> is for forms/admin validation.</li><li>Use <code>choices</code> for a fixed list of values, <code>default</code> for a starting value.</li><li>After adding or changing any field: <code>makemigrations</code> then <code>migrate</code>.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Which field stores True/False?<br><span class="ans">Answer: BooleanField</span></p><p><b>Q2.</b> Which field is best for price (like 499.50)?<br><span class="ans">Answer: DecimalField(max_digits=8, decimal_places=2)</span></p><p><b>Q3.</b> Difference between null=True and blank=True?<br><span class="ans">Answer: null=True lets the database column store NULL; blank=True lets the form/admin accept an empty value.</span></p><p><b>Q4.</b> Which option sets the date automatically when a record is created?<br><span class="ans">Answer: auto_now_add=True</span></p></details></section><section id="c9"><div class="chn">Chapter 9</div><h2>Show Database Data in HTML (Read)</h2><p class="goal"><b>You will learn:</b> how to fetch records and display them in a table.</p>
+<p>This is the <b>R</b> of CRUD. First fetch the data in the view:</p><div class="cb"><span class="lang">students/views.py</span><button class="cp">Copy</button><pre>from django.shortcuts import render, redirect, get_object_or_404
+from .models import Student
+
+def student_list(request):
+    students = Student.objects.all()
+    return render(request, &#x27;students/list.html&#x27;, {&#x27;students&#x27;: students})</pre></div>
+<p><code>Student.objects.all()</code> returns every row of the table. Then show it with a for loop:</p><div class="cb"><span class="lang">students/templates/students/list.html</span><button class="cp">Copy</button><pre>&lt;h1&gt;Students&lt;/h1&gt;
+
+{% if students %}
+&lt;table border=&quot;1&quot; cellpadding=&quot;6&quot;&gt;
+    &lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Age&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Course&lt;/th&gt;&lt;/tr&gt;
+    {% for s in students %}
+    &lt;tr&gt;
+        &lt;td&gt;{{ s.name }}&lt;/td&gt;
+        &lt;td&gt;{{ s.age }}&lt;/td&gt;
+        &lt;td&gt;{{ s.email }}&lt;/td&gt;
+        &lt;td&gt;{{ s.course }}&lt;/td&gt;
+    &lt;/tr&gt;
+    {% endfor %}
+&lt;/table&gt;
+{% else %}
+    &lt;p&gt;No students yet.&lt;/p&gt;
+{% endif %}</pre></div>
+<p>Do not forget the URL in <code>students/urls.py</code>: <code>path('', views.student_list, name='student_list')</code></p>
+<h3>Other ways to read data</h3><div class="cb"><span class="lang">python</span><button class="cp">Copy</button><pre>Student.objects.all()                    # every row
+Student.objects.get(id=1)                # exactly one row
+Student.objects.filter(course=&#x27;Python&#x27;)  # rows that match
+Student.objects.filter(age__gte=18)      # age &gt;= 18
+Student.objects.order_by(&#x27;name&#x27;)         # sorted by name
+Student.objects.count()                  # number of rows</pre></div><div class="keys"><b>Key points</b><ul><li><code>Model.objects.all()</code> = all rows.</li><li>Send them to the template in the context dictionary.</li><li>Use <code>{% for %}</code> in the template to display each row.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Which line fetches all students?<br><span class="ans">Answer: Student.objects.all()</span></p><p><b>Q2.</b> What is the difference between get() and filter()?<br><span class="ans">Answer: get() returns exactly one object; filter() returns a list of matching objects.</span></p></details></section><section id="c10"><div class="chn">Chapter 10</div><h2>CRUD Overview and URLs</h2><p class="goal"><b>You will learn:</b> the four database operations and the URLs we need for them.</p>
+<p><b>CRUD</b> = Create, Read, Update, Delete.</p>
+<div class="tbl"><table><tr><th>Letter</th><th>Operation</th><th>ORM code</th><th>SQL idea</th></tr>
+<tr><td>C</td><td>Create</td><td><code>Student.objects.create(...)</code></td><td>INSERT</td></tr>
+<tr><td>R</td><td>Read</td><td><code>Student.objects.all()</code>, <code>get()</code>, <code>filter()</code></td><td>SELECT</td></tr>
+<tr><td>U</td><td>Update</td><td><code>obj.field = value</code> then <code>obj.save()</code></td><td>UPDATE</td></tr>
+<tr><td>D</td><td>Delete</td><td><code>obj.delete()</code></td><td>DELETE</td></tr></table></div>
+<p>Read is already done in Chapter 9. Now update <code>students/urls.py</code> with all four URLs:</p><div class="cb"><span class="lang">students/urls.py</span><button class="cp">Copy</button><pre>from django.urls import path
+from . import views
+
+urlpatterns = [
+    path(&#x27;&#x27;, views.student_list, name=&#x27;student_list&#x27;),
+    path(&#x27;add/&#x27;, views.student_add, name=&#x27;student_add&#x27;),
+    path(&#x27;edit/&lt;int:id&gt;/&#x27;, views.student_edit, name=&#x27;student_edit&#x27;),
+    path(&#x27;delete/&lt;int:id&gt;/&#x27;, views.student_delete, name=&#x27;student_delete&#x27;),
+]</pre></div>
+<p><code>&lt;int:id&gt;</code> captures a number from the address (<code>/edit/3/</code>) and gives it to the view as <code>id</code>.</p>
+<p>Now add Edit and Delete links to the table in <code>list.html</code>. Add a header cell <code>&lt;th&gt;Actions&lt;/th&gt;</code> and this cell inside the loop, plus an Add link above the table:</p><div class="cb"><span class="lang">list.html</span><button class="cp">Copy</button><pre>&lt;a href=&quot;{% url &#x27;student_add&#x27; %}&quot;&gt;+ Add Student&lt;/a&gt;
+
+&lt;!-- inside the for loop row --&gt;
+&lt;td&gt;
+    &lt;a href=&quot;{% url &#x27;student_edit&#x27; s.id %}&quot;&gt;Edit&lt;/a&gt; |
+    &lt;a href=&quot;{% url &#x27;student_delete&#x27; s.id %}&quot;&gt;Delete&lt;/a&gt;
+&lt;/td&gt;</pre></div><div class="keys"><b>Key points</b><ul><li>CRUD = Create, Read, Update, Delete.</li><li>Edit and Delete need the record <b>id</b> in the URL.</li><li><code>{% url 'name' s.id %}</code> builds the link with the id.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Which ORM method inserts a row?<br><span class="ans">Answer: objects.create()</span></p><p><b>Q2.</b> What does &lt;int:id&gt; do?<br><span class="ans">Answer: Takes a number from the URL and passes it to the view.</span></p></details></section><section id="c11"><div class="chn">Chapter 11</div><h2>Create: Add a Record</h2><p class="goal"><b>You will learn:</b> how to take data from an HTML form and save it in the database.</p>
+<h3>View</h3><div class="cb"><span class="lang">students/views.py</span><button class="cp">Copy</button><pre>def student_add(request):
+    if request.method == &#x27;POST&#x27;:
+        Student.objects.create(
+            name=request.POST[&#x27;name&#x27;],
+            age=request.POST[&#x27;age&#x27;],
+            email=request.POST[&#x27;email&#x27;],
+            course=request.POST[&#x27;course&#x27;],
+        )
+        return redirect(&#x27;student_list&#x27;)
+    return render(request, &#x27;students/form.html&#x27;)</pre></div>
+<ul><li><code>request.method</code> is <b>GET</b> when the page is opened and <b>POST</b> when the form is submitted.</li>
+<li><code>request.POST['name']</code> reads the input whose <code>name="name"</code>.</li>
+<li><code>redirect('student_list')</code> sends the user back to the list after saving.</li></ul>
+<h3>Template (form.html)</h3>
+<p>We use one form for both Add and Edit:</p><div class="cb"><span class="lang">students/templates/students/form.html</span><button class="cp">Copy</button><pre>&lt;h1&gt;{% if student %}Edit{% else %}Add{% endif %} Student&lt;/h1&gt;
+
+&lt;form method=&quot;post&quot;&gt;
+    {% csrf_token %}
+    &lt;p&gt;Name: &lt;input type=&quot;text&quot; name=&quot;name&quot; value=&quot;{{ student.name }}&quot; required&gt;&lt;/p&gt;
+    &lt;p&gt;Age: &lt;input type=&quot;number&quot; name=&quot;age&quot; value=&quot;{{ student.age }}&quot; required&gt;&lt;/p&gt;
+    &lt;p&gt;Email: &lt;input type=&quot;email&quot; name=&quot;email&quot; value=&quot;{{ student.email }}&quot; required&gt;&lt;/p&gt;
+    &lt;p&gt;Course: &lt;input type=&quot;text&quot; name=&quot;course&quot; value=&quot;{{ student.course }}&quot; required&gt;&lt;/p&gt;
+    &lt;button type=&quot;submit&quot;&gt;Save&lt;/button&gt;
+&lt;/form&gt;
+&lt;a href=&quot;{% url &#x27;student_list&#x27; %}&quot;&gt;Back&lt;/a&gt;</pre></div>
+<div class="note"><b>{% csrf_token %}</b> is required inside every POST form. Without it Django shows <b>403 Forbidden</b>.</div><div class="keys"><b>Key points</b><ul><li>Form <code>method="post"</code> + <code>{% csrf_token %}</code>.</li><li>Input <code>name</code> attribute = key in <code>request.POST</code>.</li><li>After saving, use <code>redirect()</code>.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Why is csrf_token needed?<br><span class="ans">Answer: It protects the form from fake submissions; without it Django gives a 403 error.</span></p><p><b>Q2.</b> How do you read a form value in the view?<br><span class="ans">Answer: request.POST["fieldname"]</span></p></details></section><section id="c12"><div class="chn">Chapter 12</div><h2>Update: Edit a Record</h2><p class="goal"><b>You will learn:</b> how to load an existing record into the form and save the changes.</p>
+<div class="cb"><span class="lang">students/views.py</span><button class="cp">Copy</button><pre>def student_edit(request, id):
+    student = get_object_or_404(Student, id=id)
+    if request.method == &#x27;POST&#x27;:
+        student.name = request.POST[&#x27;name&#x27;]
+        student.age = request.POST[&#x27;age&#x27;]
+        student.email = request.POST[&#x27;email&#x27;]
+        student.course = request.POST[&#x27;course&#x27;]
+        student.save()
+        return redirect(&#x27;student_list&#x27;)
+    return render(request, &#x27;students/form.html&#x27;, {&#x27;student&#x27;: student})</pre></div>
+<div class="tbl"><table><tr><th>Line</th><th>Meaning</th></tr>
+<tr><td><code>get_object_or_404(Student, id=id)</code></td><td>Finds the student with that id. If none exists, shows a 404 page instead of crashing.</td></tr>
+<tr><td>GET request</td><td>Sends the student to <code>form.html</code>, so boxes are pre-filled using <code>value="{{ student.name }}"</code>.</td></tr>
+<tr><td>POST request</td><td>Changes the fields with new values, then <code>save()</code> writes them to the database.</td></tr></table></div>
+<div class="note">If you forget <code>student.save()</code>, nothing changes in the database.</div><div class="keys"><b>Key points</b><ul><li>Fetch the object with <code>get_object_or_404</code>.</li><li>Change the fields, then call <code>save()</code>.</li><li>The same form.html is reused; <code>{% if student %}</code> shows the Edit title.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> What happens if you forget save()?<br><span class="ans">Answer: The database is not updated.</span></p><p><b>Q2.</b> Why use get_object_or_404?<br><span class="ans">Answer: To show a 404 page when the id does not exist.</span></p></details></section><section id="c13"><div class="chn">Chapter 13</div><h2>Delete: Remove a Record</h2><p class="goal"><b>You will learn:</b> how to delete a record safely with a confirmation page.</p>
+<div class="cb"><span class="lang">students/views.py</span><button class="cp">Copy</button><pre>def student_delete(request, id):
+    student = get_object_or_404(Student, id=id)
+    if request.method == &#x27;POST&#x27;:
+        student.delete()
+        return redirect(&#x27;student_list&#x27;)
+    return render(request, &#x27;students/confirm_delete.html&#x27;, {&#x27;student&#x27;: student})</pre></div><div class="cb"><span class="lang">students/templates/students/confirm_delete.html</span><button class="cp">Copy</button><pre>&lt;h1&gt;Delete Student&lt;/h1&gt;
+&lt;p&gt;Are you sure you want to delete &lt;b&gt;{{ student.name }}&lt;/b&gt;?&lt;/p&gt;
+
+&lt;form method=&quot;post&quot;&gt;
+    {% csrf_token %}
+    &lt;button type=&quot;submit&quot;&gt;Yes, Delete&lt;/button&gt;
+    &lt;a href=&quot;{% url &#x27;student_list&#x27; %}&quot;&gt;Cancel&lt;/a&gt;
+&lt;/form&gt;</pre></div>
+<div class="note">Delete uses a <b>POST form</b> with a confirmation page, not a plain link. A link can be opened by mistake; a POST needs an intentional click.</div>
+<h3>Test your project (in this order)</h3>
+<ol><li>Open <code>/</code> and check the list.</li><li>Click <b>Add Student</b>, save, check the list.</li><li>Click <b>Edit</b>, change a value, save.</li><li>Click <b>Delete</b>, confirm.</li></ol><div class="keys"><b>Key points</b><ul><li><code>obj.delete()</code> removes the record.</li><li>Ask for confirmation first (POST form).</li><li>All four operations now work: Create, Read, Update, Delete.</li></ul></div><details><summary>Check yourself</summary><p><b>Q1.</b> Which method removes a record?<br><span class="ans">Answer: student.delete()</span></p><p><b>Q2.</b> Why not delete using a simple link?<br><span class="ans">Answer: A link can be clicked or opened by mistake; POST is safer.</span></p></details></section><section id="c14"><div class="chn">Chapter 14</div><h2>Revision: Cheat Sheet, Errors, Practice</h2>
+<h3>Cheat sheet</h3>
+<div class="tbl"><table><tr><th>Task</th><th>Command / Code</th></tr>
+<tr><td>Create project / app</td><td><code>django-admin startproject mysite</code> / <code>python manage.py startapp students</code></td></tr>
+<tr><td>Run server</td><td><code>python manage.py runserver</code></td></tr>
+<tr><td>After model change</td><td><code>makemigrations</code> then <code>migrate</code></td></tr>
+<tr><td>Show variable</td><td><code>{{ student.name }}</code></td></tr>
+<tr><td>Condition / Loop</td><td><code>{% if %}...{% endif %}</code> / <code>{% for %}...{% endfor %}</code></td></tr>
+<tr><td>URL link</td><td><code>{% url 'student_edit' s.id %}</code></td></tr>
+<tr><td>Form protection</td><td><code>{% csrf_token %}</code></td></tr>
+<tr><td>Static file</td><td><code>{% load static %}</code> and <code>{% static 'css/style.css' %}</code></td></tr></table></div>
+<h3>Common errors and fixes</h3>
+<div class="tbl"><table><tr><th>Error</th><th>Reason</th><th>Fix</th></tr>
+<tr><td>TemplateDoesNotExist</td><td>Wrong path or folder</td><td>Use <code>templates/students/list.html</code> and <code>render(request, 'students/list.html')</code>; check INSTALLED_APPS.</td></tr>
+<tr><td>403 CSRF failed</td><td>Token missing</td><td>Add <code>{% csrf_token %}</code> in the form.</td></tr>
+<tr><td>NoReverseMatch</td><td>Wrong URL name or id missing</td><td>Match <code>name=</code> in urls.py; pass id in <code>{% url %}</code>.</td></tr>
+<tr><td>no such table</td><td>Migrations not run</td><td>Run makemigrations and migrate.</td></tr>
+<tr><td>404 Page not found</td><td>URL not added / not included</td><td>Check <code>include('students.urls')</code>.</td></tr>
+<tr><td>CSS not loading</td><td>Missing load static or wrong folder</td><td>Add <code>{% load static %}</code>; folder must be <code>static/</code>.</td></tr>
+<tr><td>Edit not saving</td><td>No <code>save()</code></td><td>Call <code>student.save()</code>.</td></tr></table></div>
+<h3>Practice exercises</h3>
+<ol><li>Create a <b>Book</b> model (title, author, price, pages), migrate it, register in admin.</li>
+<li>Show all books in an HTML table using a for loop.</li>
+<li>Show "Costly" if price is above 500, else "Affordable", using if/else.</li>
+<li>Add a form to create a book.</li>
+<li>Add Edit and Delete for each book.</li>
+<li>Style the table with a CSS file using static files.</li></ol>
+<div class="note"><b>Remember:</b> URL &rarr; View &rarr; Model &rarr; Template. When something breaks, check these four in order.</div></section></main><script>
+document.querySelectorAll('.cp').forEach(function(b){b.onclick=function(){
+ var t=b.parentNode.querySelector('pre').innerText;
+ try{navigator.clipboard.writeText(t).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)})}catch(e){}
+}});
+</script></body></html>
